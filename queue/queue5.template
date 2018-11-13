@@ -1,0 +1,142 @@
+#include "queue5.h"
+
+namespace main_savitch_8D
+{
+
+	template<class Item>
+	inline queue<Item>::queue()
+	{
+		rear_ptr = NULL;
+		count = 0;
+	}
+
+	template<class Item>
+	queue<Item>::queue(const queue<Item>& source)
+	{
+		rear_ptr = NULL;
+		count = 0;
+
+		if (source.rear_ptr == NULL) return;
+
+		else
+		{
+			node<Item> *cursorSrc = source.rear_ptr->link();
+
+			//while (cursorSrc != source.rear_ptr->link())
+			for (size_type i = 0; i < source.count; ++i)
+			{
+				push(cursorSrc->data());
+				cursorSrc = cursorSrc->link();
+			}
+		}
+		/*if (count != source.count)
+		{
+			std::cerr << "Wrong Size!!!\n";
+		}*/
+	}
+
+	template<class Item>
+	queue<Item>::~queue()
+	{
+		while (count > 0)
+		{
+			pop();
+		}
+	}
+
+	
+
+	template<class Item>
+	void queue<Item>::pop()
+	{
+		if (count == 0 || rear_ptr == NULL) return;
+
+		else if (count == 1)
+		{
+			delete rear_ptr;
+			rear_ptr = NULL;
+			count = 0;
+			return;
+		}
+		else
+		{
+			node<Item> *pop_ptr = rear_ptr->link();
+			rear_ptr->set_link(pop_ptr->link());
+			delete pop_ptr;
+			--count;
+		}
+	}
+
+	template<class Item>
+	void queue<Item>::push(const Item & entry)
+	{
+		if (count == 0) 
+		{
+			node<Item> *push_ptr = new node<Item>(entry, NULL);
+			rear_ptr = push_ptr;
+			push_ptr->set_link(rear_ptr);
+			//cerr << "Initial Push\n";
+			++count;
+		}
+		else
+		{
+			node<Item> *push_ptr = new node<Item>(entry, rear_ptr->link());
+			rear_ptr->set_link(push_ptr);
+			rear_ptr = push_ptr;
+			//cerr << "Other Push\n";
+			++count;
+		}
+	}
+
+	template<class Item>
+	void queue<Item>::operator=(const queue<Item>& source)
+	{
+		if (this == &source) return;
+
+		rear_ptr = NULL;
+		count = 0;
+
+		if (source.rear_ptr == NULL) return;
+
+		else
+		{
+			node<Item> *cursorSrc = source.rear_ptr->link();
+
+			//while (cursorSrc != source.rear_ptr->link())
+			for (size_type i = 0; i < source.count; ++i)
+			{
+				push(cursorSrc->data());
+				cursorSrc = cursorSrc->link();
+			}
+		}
+		/*if (count != source.count)
+		{
+			std::cerr << "Wrong Size!!!\n";
+		}*/
+	}
+
+	template<class Item>
+	Item& queue<Item>::front()
+	{
+		return rear_ptr->link()->data();
+	}
+
+	template<class Item>
+	const Item& queue<Item>::front() const
+	{
+		return rear_ptr->link()->data();
+	}
+
+}
+
+/*
+//////////////////////////////////////////////////////////////////////////\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+/////////////////////////////////////                    Collaborators on this Assignment:                     \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+/////////////////////////////////////                                                                          \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+/////////////////////////////////////              Micheal whitney - Implementation                            \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+/////////////////////////////////////              James Sherman - Implementation                              \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+/////////////////////////////////////              Dr. Koh's Help with the loops                               \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+/////////////////////////////////////                                                                          \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+//////////////////////////////////////////////////////////////////////////\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+*/
+

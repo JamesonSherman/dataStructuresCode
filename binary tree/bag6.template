@@ -1,0 +1,304 @@
+
+
+namespace main_savitch_10
+{
+	template<class Item>
+	bag<Item>::bag(const bag& source) 
+	{
+		root_ptr = tree_copy(source.root_ptr);
+	}
+
+	template<class Item>
+	bag<Item>::~bag()
+	{
+		tree_clear(root_ptr);
+	}
+
+	template<class Item>
+	typename bag<Item>::size_type bag<Item>::erase(const Item& target)  
+	{
+		size_type erased_total = 0; 
+
+		while (erase_one(target)) // while the target is still there, keep deleting
+		{
+			++erased_total;
+		}
+		
+		if (erased_total > 0)
+		{
+			while (!s.empty())
+			{
+				s.pop();
+			}
+
+			return erased_total;
+		}
+
+		else return 0; // nothing erased
+
+	}
+
+	template<class Item>
+	bool bag<Item>::erase_one(const Item& target)
+	{
+		bool erased = bst_remove(root_ptr, target);
+
+		if (!erased) return false;
+
+		else
+		{
+			while (!s.empty())
+			{
+				s.pop();
+			}
+
+			return erased;
+		}
+	}
+
+	template<class Item>
+	void bag<Item>::insert(const Item& entry) // Implemented from book and Dr.Koh
+	{
+		while (!s.empty())
+		{
+			s.pop();
+		}
+
+		binary_tree_node<Item> *curNode;
+
+		if (root_ptr == NULL)
+		{
+			root_ptr = new binary_tree_node<Item>(entry);
+			return;
+		}
+
+		else
+		{
+			curNode = root_ptr;
+			binary_tree_node<Item> *insertNode;
+
+			insertNode = new binary_tree_node<Item>(entry);
+			bool inserted = false;
+
+			while (!inserted)
+			{
+
+				if (curNode->data() < entry) // Find position in the order less than entry
+				{
+					if (curNode->right() == NULL) // Put in right side if empty
+					{
+						curNode->right() = insertNode;
+						inserted = true;
+					}
+
+					curNode = curNode->right();
+				}
+
+				else
+				{
+					if (curNode->left() == NULL) // If entry is greater than the current, put in left side if empty.
+					{
+						curNode->left() = insertNode;
+						inserted = true;
+					}
+
+					curNode = curNode->left();
+				}
+			}// end while
+
+		}// end else
+	}// end insert
+
+	template<class Item>
+	void bag<Item>::operator =(const bag& source)
+	{
+		if (this == &source) return;
+
+		tree_clear(root_ptr);
+
+		root_ptr = tree_copy(source.root_ptr);
+	}
+
+	template<class Item>
+	typename bag<Item>::size_type bag<Item>::size() const
+	{
+		return tree_size(root_ptr);
+	}
+
+	template<class Item>
+	typename bag<Item>::size_type bag<Item>::count(const Item& target) const 
+	{
+		size_type total = 0;
+		binary_tree_node<Item> *curs = root_ptr;
+
+		if (root_ptr == NULL) return 0;
+
+		else
+		{
+			while (curs != NULL)
+			{
+				if (curs->data() > target) // Greater than, left
+				{
+					curs = curs->left();
+				}
+
+				else if (curs->data() < target) // Less than, right
+				{
+					curs = curs->right();
+				}
+
+				else if (curs->data() == target) // Equal, increment total
+				{
+					++total;
+					curs = curs->left();
+				}
+			}//end while
+		}//end else
+
+		return total;
+	}
+
+	template<class Item>
+	void bag<Item>::start()
+	{
+		while (!s.empty()) // clear the stack
+		{
+			s.pop();
+		}
+
+		inorder_push(root_ptr);
+	}
+
+	template<class Item>
+	bool bag<Item>::is_current() 
+	{
+		if (!s.empty()) return true;
+		else return false;
+	}
+
+	template<class Item>
+	Item& bag<Item>::get_current()
+	{
+			return s.top()->data();
+	}
+
+	template<class Item>
+	void bag<Item>::advance() 
+	{
+		if (s.empty()) return;
+		else s.pop();
+	}
+
+	template<class Item>
+	void bag<Item>::inorder_push(binary_tree_node<Item> *r)
+	{
+		// Left -> Root -> Right    "In-Order"
+
+		if (r != NULL)
+		{
+			inorder_push(r->left());
+			s.push(r);
+			inorder_push(r->right());
+		}
+	}
+
+	// ---------------------------------------------------------------------------
+
+	template<class Item>
+	void tree_clear(binary_tree_node<Item>*& root_ptr)
+	{
+		binary_tree_node<Item>* leaf;
+
+		if (root_ptr != NULL)
+		{
+			leaf = root_ptr->left();
+			tree_clear(leaf);
+
+			leaf = root_ptr->right();
+			tree_clear(leaf);
+
+			delete root_ptr;
+			root_ptr = NULL;
+		}
+	}
+
+	template<class Item>
+	binary_tree_node<Item>* tree_copy(const binary_tree_node<Item>* root_ptr)
+	{
+		binary_tree_node<Item> *l_ptr;
+		binary_tree_node<Item> *r_ptr;
+
+		if (root_ptr == NULL) return NULL;
+
+		else
+		{
+			l_ptr = tree_copy(root_ptr->left());
+			r_ptr = tree_copy(root_ptr->right());
+
+			return new binary_tree_node<Item>(root_ptr->data(), l_ptr, r_ptr);
+		}
+	}
+
+	template<class Item>
+	typename bag<Item>::size_type tree_size(const binary_tree_node<Item>* node_ptr)
+	{
+		if (node_ptr == NULL) return 0;
+		else return (1 + tree_size(node_ptr->left()) + tree_size(node_ptr->right()));
+	}
+
+	template<class Item>
+	void bst_remove_max(binary_tree_node<Item>*& root_ptr, Item& removed)
+	{
+		if (root_ptr == NULL) return;
+
+		else if (root_ptr->right() == NULL)
+		{
+			binary_tree_node<Item> *deleteNode = root_ptr;
+
+			removed = root_ptr->data();
+			root_ptr = root_ptr->left();
+			delete deleteNode;
+		}
+
+		else bst_remove_max(root_ptr->right(), removed);
+	}
+
+	template<class Item>
+	bool bst_remove(binary_tree_node<Item>*& root_ptr, const Item& target)
+	{
+		binary_tree_node<Item> *prev_root;
+
+		if (root_ptr == NULL) return false;
+
+		else if (root_ptr->data() > target) return bst_remove(root_ptr->left(), target);
+
+		else if (root_ptr->data() < target) return bst_remove(root_ptr->right(), target);
+
+		else
+		{
+			if (root_ptr->left() == NULL)
+			{
+				prev_root = root_ptr;
+				root_ptr = root_ptr->right();
+				delete prev_root;
+			}
+
+			else bst_remove_max(root_ptr->left(), root_ptr->data());
+
+			return true;
+		}
+	}
+
+
+}
+
+/*
+//////////////////////////////////////////////////////////////////////////\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+/////////////////////////////////////                    Collaborators on this Assignment:                     \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+/////////////////////////////////////                                                                          \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+/////////////////////////////////////              Micheal Whitney - Major Implementation                      \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+/////////////////////////////////////              James Sherman - Helped with understanding                   \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+/////////////////////////////////////                                                                          \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+//////////////////////////////////////////////////////////////////////////\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+*/
+

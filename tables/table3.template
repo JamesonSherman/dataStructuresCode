@@ -1,0 +1,122 @@
+
+std::vector<int> numExGlobal;
+
+namespace main_savitch_12C
+{
+
+	template<class RecordType, size_t TABLE_SIZE, class HashkeyFunction>
+	void table<RecordType, TABLE_SIZE, HashkeyFunction>::remove(int key) // remove
+	{
+		if (!is_present(key)) return;
+
+		std::vector<RecordType>& chain = data[hash(key)];
+		typename std::vector<RecordType>::iterator it;
+		bool found = false;
+		int numItemsExamined = 0;
+		for (it = chain.begin(); (it != chain.end()) && (found); ++it)
+		{
+			++numItemsExamined;
+			if ((*it).key == key)
+			{
+				found = true;
+			}
+		}
+		if (!found)
+		{
+			chain.erase(it);
+			numItemsExaminedInSuccessfulSearch.push_back(numItemsExamined);
+			--total_records;
+		}
+		else
+		{
+			//cout << "I was not found\n";
+			return;
+		}
+	}
+
+	template<class RecordType, size_t TABLE_SIZE, class HashkeyFunction>
+	void table<RecordType, TABLE_SIZE, HashkeyFunction>::find(int key, bool & found, RecordType & result) const // find
+	{
+		std::vector<RecordType> chain = data[hash(key)];
+		typename std::vector<RecordType>::iterator it;
+		found = false;
+		int numItemsExamined = 0;
+		for (it = chain.begin(); (it != chain.end()) && (!found); ++it)
+		{
+			if ((*it).key == key)
+			{
+				found = true;
+			}
+			++numItemsExamined;
+		}
+		if (found)
+		{
+			result = *(--it);
+			numExGlobal.push_back(numItemsExamined);
+		}
+		else
+		{
+			found = false;
+		}
+		
+	}
+
+	template<class RecordType, size_t TABLE_SIZE, class HashkeyFunction>
+	bool table<RecordType, TABLE_SIZE, HashkeyFunction>::is_present(int key) const // is present
+	{
+		typename std::vector<int>::iterator it;
+
+		bool found = false;
+		RecordType s_result;
+		find(key, found, s_result);
+		return found;
+	}
+
+	template<class RecordType, size_t TABLE_SIZE, class HashkeyFunction>
+	void table<RecordType, TABLE_SIZE, HashkeyFunction>::provide_stats() // provide stats
+	{
+		//typename std::vector<int>::iterator it;
+		float average = 0;
+		int maximum = 0;
+
+		while (numExGlobal.end() != numExGlobal.begin())
+		{
+			numItemsExaminedInSuccessfulSearch.push_back(*(--numExGlobal.end()));
+			//std::cout << *(--numExGlobal.end()) << " ";
+			numExGlobal.pop_back();
+		}
+		//std::cout << "\n";
+		for (size_t it = 0; it < numItemsExaminedInSuccessfulSearch.size(); ++it)
+		{
+			//std::cout << numItemsExaminedInSuccessfulSearch[it] << " ";
+			average += numItemsExaminedInSuccessfulSearch[it];
+			if (maximum < numItemsExaminedInSuccessfulSearch[it]) maximum = numItemsExaminedInSuccessfulSearch[it];
+		}
+		//std::cout << "\n";
+
+		if (numItemsExaminedInSuccessfulSearch.size() == 0) average = 0;
+		else average /= static_cast<float>(numItemsExaminedInSuccessfulSearch.size());
+
+		std::cout << "Load Factor: " << static_cast<float>(total_records) / static_cast<float>(TABLE_SIZE) << "\n";
+		std::cout << "Average Items Searched in Successful Search: " << average << "\n";
+		std::cout << "Maximum Items Searched in Successful Search: " << maximum << "\n";
+
+		// *** store the numbers of items examined during successful searches to
+		//     "calculate the average number of items examined during a successful search, 
+		//     and the maximum number of items examined during a successful search."
+	}
+
+}
+
+/*
+//////////////////////////////////////////////////////////////////////////\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+/////////////////////////////////////                    Collaborators on this Assignment:                     \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+/////////////////////////////////////                                                                          \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+/////////////////////////////////////              Micheal whitney - Implementation                            \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+/////////////////////////////////////              Kaitlyn Butler - Implementation                             \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+/////////////////////////////////////              Paribartann Dhakal - Implementation                         \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+/////////////////////////////////////              James Sherman - Implementation                              \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+/////////////////////////////////////                                                                          \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+//////////////////////////////////////////////////////////////////////////\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+*/
+
